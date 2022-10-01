@@ -12,22 +12,34 @@ function mergeSort([...arr]) {
 }
 
 function merger([...arrL],[...arrR]) {
-  const merged = [];
-  while (arrL.length > 0 || arrR.length > 0) {
-    let left = arrL.splice(0,1)[0];
-    let right = arrR.splice(0,1)[0];
-    if (left < right) {
-      let leftArr = checkAdjacent(arrL,left,right)
-      if (left !== undefined) merged.push(...leftArr);
-      if (right !== undefined) merged.push(right);
-    } else {
-      let rightArr = checkAdjacent(arrR, right, left)
-      if (right !== undefined) merged.push(...rightArr);
-      if (left !== undefined) merged.push(left);
+    const merged = [];
+    let iL = 0;
+    while (arrL.length > 0 && arrR.length > 0) {
+      const arrWithMin = arrL[0] < arrR[0] ? arrL : arrR;
+      const min = arrWithMin.shift();
+      merged.push(min);
     }
-  }
-  return merged;
+    return merged.concat(arrL,arrR);
 }
+
+
+// function merger([...arrL],[...arrR]) {
+//   const merged = [];
+//   while (arrL.length > 0 || arrR.length > 0) {
+//     let left = arrL.splice(0,1)[0];
+//     let right = arrR.splice(0,1)[0];
+//     if (left < right) {
+//       let leftArr = checkAdjacent(arrL,left,right)
+//       if (left !== undefined) merged.push(...leftArr);
+//       if (right !== undefined) merged.push(right);
+//     } else {
+//       let rightArr = checkAdjacent(arrR, right, left)
+//       if (right !== undefined) merged.push(...rightArr);
+//       if (left !== undefined) merged.push(left);
+//     }
+//   }
+//   return merged;
+// }
 
 function checkAdjacent(currentArray,currentNum, compareNum) {
   let arr = [currentNum];
