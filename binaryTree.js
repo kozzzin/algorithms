@@ -201,24 +201,12 @@ class Tree {
     // try recursion implementation
   }
 
-  // levelOrderTraversal(current=this.root, iteration = 0) {
-  //   const queue = [];
-  //   let index = 0;
-  //   if (current == null) {
-  //     return;
-  //   }
-  //   queue.push(current);
-  //   while (index != queue.length) {
-  //     current = queue[index];
-  //     if (current.left != null) queue.push(current.left);
-  //     if (current.right != null) queue.push(current.right);
-  //     index++;
-  //   }
-  //   return queue;
-  //   // try recursion implementation
-  // }
+  traversal() {
+    return this.inorder();
+  }
 
-  //  Write inorder, preorder, and postorder functions that accept a function parameter. Each of these functions should traverse the tree in their respective depth-first order and yield each node to the provided function given as an argument. The functions should return an array of values if no function is given.
+
+  ///// !!!! ADD CALLBACK OR RETURN ARRAY
 
   preorder(callback, current = this.root) {
     // root left right
@@ -230,10 +218,23 @@ class Tree {
 
   inorder(callback, current = this.root) {
     // left root right
+    const out = [];
     if (current == null) return;
-    this.inorder(null,current.left);
-    console.log('in-depth',current,current.left,current.right);
-    this.inorder(null,current.right);
+
+    const left = this.inorder(null,current.left);
+
+    if (!!callback) {
+      callback(current);
+    } else {
+      console.log(current)
+    }
+    const right = this.inorder(null,current.right);
+
+    if (left !== undefined) out.push(...left);
+    out.push(current.data);
+    if (right !== undefined) out.push(...right);
+    
+    return out;
   }
 
   postorder(callback, current = this.root) {
@@ -243,6 +244,40 @@ class Tree {
     this.postorder(null,current.right);
     console.log('in-depth',current,current.left,current.right);
   }
+
+  height(node, height = 0) {
+    if (node == null) {
+      return node;
+    }
+    if (node.left === null && node.right === null) {
+      return height;
+    }
+    const left = this.height(node.left, height + 1);
+    const right = this.height(node.right, height + 1);
+    return Math.max(left,right);
+  }
+
+  depth(node, current = this.root, depth = 0) {
+    if (node == null || current.data == node.data) {
+      return depth;
+    }
+
+    if (node.data < current.data) {
+      depth = this.depth(node, current.left, depth + 1);
+    } else if (node.data > current.data) {
+      depth = this.depth(node, current.right, depth + 1)
+    }
+
+    return depth;
+  }
+
+  rebalance() {
+    const currentArray = tree.traversal();
+    this.root = this.buildTree(currentArray);
+    return this.root;
+  }
+
+
 
 
 }
@@ -275,6 +310,7 @@ tree.insertRec(1000);
 tree.insertRec(900);
 tree.insertRec(6343);
 tree.insertRec(8);
+tree.insertRec(11);
 
 
 tree.delete(67);
@@ -284,7 +320,7 @@ console.log(tree.find(23));
 // const deleter = new Deleter(tree.root);
 // console.log('search',deleter.deleteSearch(6345));
 
-let traversal = [];
+
 console.log('traversal',tree.levelOrder());
 console.log('traversal',tree.levelOrder(console.log));
 // console.log(tree.levelOrder());
@@ -292,4 +328,14 @@ console.log('traversal',tree.levelOrder(console.log));
 tree.postorder();
 // tree.preorder();
 
+
+
+const heightNode = tree.find(11);
+console.log(heightNode);
+console.log(tree.height(heightNode));
+console.log('DEPTH...',tree.depth(heightNode));
+
+prettyPrint(tree.root) 
+
+tree.rebalance();
 prettyPrint(tree.root) 
