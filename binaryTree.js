@@ -14,8 +14,6 @@ class Tree {
   buildTree(arr) {
     const sortedArray = Array.from(new Set(arr))
       .sort((a,b) => a - b);
-    console.log(sortedArray);
-    // if (sortedArray.length == 0) return null;
     const mid = Math.floor(sortedArray.length/2);
     if (mid === 0) {
       if (sortedArray.length === 0) return null;
@@ -24,76 +22,164 @@ class Tree {
     }
     const left = this.buildTree(sortedArray.slice(0, mid));
     const right = this.buildTree(sortedArray.slice(mid+1, sortedArray.length));
-    console.log(left, mid, right);
     return new Node(sortedArray[mid],left,right);
   }
+   
 
-  insert(value) {
-    let current = this.root;
+  insertRec(value, current=this.root) {
     if (current.data === value || current === undefined) {
       return current
     }
 
-    while(!(current.right === null && current.left === null)) {
-      console.log('i work');
-      if (value < current.data) {
-        console.log('left--<',current.left);
-        if (current.left === null) {
-          ('NULL!!!!');
-          current.left = new Node(value, null, null);
-          return;
-        }
-        current = current.left;
-      }
-
-      if (value > current.data) {
-        console.log('right-->',current.right);
-        if (current.right === null) {
-          current.right = new Node(value, null, null);
-          return;
-        }
-        current = current.right;
-      } 
-
-      if (current.data === value) return;
-
+    if ((value < current.data) &&
+        (current.left !== null)) {
+        current = this.insertRec(value, current.left);
     }
 
-    
-    if (value < current.data) current.left = new Node(value, null, null);;
-    if (value > current.data) current.right = new Node(value, null, null);
+    if ((value > current.data) &&
+        (current.right !== null)) {
+        current = this.insertRec(value, current.right);
+    }
 
-
+    if (current.right === null || current.left === null) {
+      if (value < current.data) current.left = new Node(value, null, null);
+      if (value > current.data) current.right = new Node(value, null, null);
+      return current;
+    }
   }
 
-  delete(value) {
-    let current = this.root;
-    // deleting routine
-    if (current.data === value) {
+  // insert(value) {
+  //   let current = this.root;
+  //   if (current.data === value || current === undefined) {
+  //     return current
+  //   }
 
+  //   while(!(current.right === null && current.left === null)) {
+  //     if (value < current.data) {
+  //       if (current.left === null) {
+  //         current.left = new Node(value, null, null);
+  //         return;
+  //       }
+  //       current = current.left;
+  //     }
+
+  //     if (value > current.data) {
+  //       if (current.right === null) {
+  //         current.right = new Node(value, null, null);
+  //         return;
+  //       }
+  //       current = current.right;
+  //     } 
+
+  //     if (current.data === value) return;
+
+  //   }
+
+  //   if (value < current.data) current.left = new Node(value, null, null);;
+  //   if (value > current.data) current.right = new Node(value, null, null);
+  // }
+
+}
+
+class Deleter {
+  constructor(root) {
+    this.root = root;
+  }
+
+  deleteSearch(value, iteration = 0, current = this.root) {
+    console.log('iteration',iteration);
+    let next;
+    if (current === undefined || current === null) {
+      return null;
+    }
+
+    if (current.data === value) { 
+      current.data = this.deleteThis(null, current, value).data;
       return;
     }
 
-    while (current.left !== null && current.right !== null) {
-      console.log('current-->',current);
-      if (current.data === value) {
-
+    if (current.data < value) {
+      next = current.right;
+      if (this.nextValue(next,value)) {
+        current.right = this.deleteThis(current,next,value);
+        return;
       }
-
-      if (value < current.data) {
-        console.log('<--left',current.left);
-        current = current.left;
-      }
-
-      if (value > current.data) {
-        console.log('right-->',current.right);
-        current = current.right;
-      } 
     }
-    // delete leaf node
-    // delete node with one branch
-    // delete node with two branches
-    //
+
+    if (current.data > value) {
+      next = current.left;
+      if (this.nextValue(next,value)) {
+        current.left = this.deleteThis(current,next,value);
+        return;
+      }
+    }
+
+    if (current.left === null && current.right === null) {
+      return;
+    }
+
+    this.deleteSearch(value, iteration + 1, next);
+  }
+
+  deleteThis(parent, toDelete, value) {
+    const deleteFunc = this.selectDeleteFunc(toDelete);
+    return deleteFunc.call(this,parent,toDelete,value);
+  }
+
+  nextValue(next, value) {
+    if (next.data === value) {
+      return true;
+    }
+    return false;
+  }
+
+  selectDeleteFunc(node) {
+    if (node.left === null && node.right === null) {
+      return this.deleteLeaf;
+    }
+
+    if (node.left === null || node.right === null) {
+      return this.deleteOneChild;
+    }
+
+    if (node === null || node === undefined) {
+      return false;
+    }
+
+    return this.deleteTwoChildren;
+  }
+
+  deleteLeaf(parent, toDelete, value) {
+    return null;
+  }
+
+  deleteOneChild(parent, toDelete, value) {
+    return toDelete.left || toDelete.right;
+  }
+
+  deleteTwoChildren(parent, toDelete, value) {
+    const nextBiggest = this.findNextBiggest(
+      toDelete.right,
+      toDelete.data,
+      toDelete.right.data
+    );
+
+    const tempData = nextBiggest.data;
+
+    this.deleteSearch(nextBiggest.data);
+
+    toDelete.data = tempData;
+
+    return toDelete;
+  }
+
+  findNextBiggest(node, min, max) {
+    let current = node;
+    if ((node.data > min) && (node.data) <= max) {
+      if (node.left === null) return current;
+      current = this.findNextBiggest(node.left,min,max);
+    }
+    return current;
   }
 
 }
@@ -114,15 +200,21 @@ const prettyPrint = (node, prefix = '', isLeft = true) => {
 }
 
 
-tree.insert(2);
-tree.insert(4);
-tree.insert(6);
-tree.insert(10);
-tree.insert(1000);
-tree.insert(6343);
+tree.insertRec(2);
+tree.insertRec(4);
+tree.insertRec(6);
+tree.insertRec(10);
+tree.insertRec(1000);
+tree.insertRec(6343);
 
 
 // tree.delete(2);
 
 
-prettyPrint(tree.root)                                                                   
+
+const deleter = new Deleter(tree.root);
+console.log('search',deleter.deleteSearch(6345));
+
+                                                           
+
+prettyPrint(tree.root) 
