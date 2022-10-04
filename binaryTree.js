@@ -1,5 +1,5 @@
 class Node {
-  constructor(data, left, right) {
+  constructor(data, left = null, right = null) {
     this.data = data;
     this.left = left;
     this.right = right;
@@ -14,12 +14,8 @@ class Tree {
   buildTree(arr) {
     const sortedArray = Array.from(new Set(arr))
       .sort((a,b) => a - b);
-    const mid = Math.floor(sortedArray.length/2);
-    if (mid === 0) {
       if (sortedArray.length === 0) return null;
-      const value = sortedArray[mid] === undefined ? null : sortedArray[mid];
-      return new Node(value,null,null);
-    }
+    const mid = Math.floor(sortedArray.length/2);
     const left = this.buildTree(sortedArray.slice(0, mid));
     const right = this.buildTree(sortedArray.slice(mid+1, sortedArray.length));
     return new Node(sortedArray[mid],left,right);
@@ -27,57 +23,48 @@ class Tree {
    
 
   insertRec(value, current=this.root) {
-    if (current.data === value || current === undefined) {
-      return current
-    }
-
-    if ((value < current.data) &&
-        (current.left !== null)) {
-        current = this.insertRec(value, current.left);
-    }
-
-    if ((value > current.data) &&
-        (current.right !== null)) {
-        current = this.insertRec(value, current.right);
-    }
-
-    if (current.right === null || current.left === null) {
-      if (value < current.data) current.left = new Node(value, null, null);
-      if (value > current.data) current.right = new Node(value, null, null);
+    if (current == null) {
+      current = new Node(value);
       return current;
     }
+
+    if (value < current.data) {
+        current.left = this.insertRec(value, current.left);
+    }
+
+    if (value > current.data) {
+        current.right = this.insertRec(value, current.right);
+    }
+
+    return current;
   }
 
-  // insert(value) {
-  //   let current = this.root;
-  //   if (current.data === value || current === undefined) {
-  //     return current
-  //   }
 
-  //   while(!(current.right === null && current.left === null)) {
-  //     if (value < current.data) {
-  //       if (current.left === null) {
-  //         current.left = new Node(value, null, null);
-  //         return;
-  //       }
-  //       current = current.left;
-  //     }
+  delete(value, current=this.root) {
+    if (current == null) {
+      return current;
+    }
 
-  //     if (value > current.data) {
-  //       if (current.right === null) {
-  //         current.right = new Node(value, null, null);
-  //         return;
-  //       }
-  //       current = current.right;
-  //     } 
+    if (value < current.data) {
+      current.left = this.delete(value,current.left);
+    } else if (value > current.data) {
+      current.right = this.delete(value,current.right);
+    } else {
+      if (current.left == null) return current.right;
+      if (current.right == null) return current.left;
+      current.data = this.findNextBiggest(current.right);
+      current.right = this.delete(current.data,current.right);
+    }
 
-  //     if (current.data === value) return;
+    return current;
+  }
 
-  //   }
-
-  //   if (value < current.data) current.left = new Node(value, null, null);;
-  //   if (value > current.data) current.right = new Node(value, null, null);
-  // }
+  findNextBiggest(current) {
+    if (current.left == null) {
+      return current.data;
+    }
+    return this.findNextBiggest(current.left);
+  }
 
 }
 
@@ -206,14 +193,15 @@ tree.insertRec(6);
 tree.insertRec(10);
 tree.insertRec(1000);
 tree.insertRec(6343);
+tree.insertRec(8);
 
 
-// tree.delete(2);
+tree.delete(67);
 
 
 
-const deleter = new Deleter(tree.root);
-console.log('search',deleter.deleteSearch(6345));
+// const deleter = new Deleter(tree.root);
+// console.log('search',deleter.deleteSearch(6345));
 
                                                            
 
