@@ -1,106 +1,3 @@
-// class Deleter {
-  //   constructor(root) {
-  //     this.root = root;
-  //   }
-  
-  //   deleteSearch(value, iteration = 0, current = this.root) {
-  //     console.log('iteration',iteration);
-  //     let next;
-  //     if (current === undefined || current === null) {
-  //       return null;
-  //     }
-  
-  //     if (current.data === value) { 
-  //       current.data = this.deleteThis(null, current, value).data;
-  //       return;
-  //     }
-  
-  //     if (current.data < value) {
-  //       next = current.right;
-  //       if (this.nextValue(next,value)) {
-  //         current.right = this.deleteThis(current,next,value);
-  //         return;
-  //       }
-  //     }
-  
-  //     if (current.data > value) {
-  //       next = current.left;
-  //       if (this.nextValue(next,value)) {
-  //         current.left = this.deleteThis(current,next,value);
-  //         return;
-  //       }
-  //     }
-  
-  //     if (current.left === null && current.right === null) {
-  //       return;
-  //     }
-  
-  //     this.deleteSearch(value, iteration + 1, next);
-  //   }
-  
-  //   deleteThis(parent, toDelete, value) {
-  //     const deleteFunc = this.selectDeleteFunc(toDelete);
-  //     return deleteFunc.call(this,parent,toDelete,value);
-  //   }
-  
-  //   nextValue(next, value) {
-  //     if (next.data === value) {
-  //       return true;
-  //     }
-  //     return false;
-  //   }
-  
-  //   selectDeleteFunc(node) {
-  //     if (node.left === null && node.right === null) {
-  //       return this.deleteLeaf;
-  //     }
-  
-  //     if (node.left === null || node.right === null) {
-  //       return this.deleteOneChild;
-  //     }
-  
-  //     if (node === null || node === undefined) {
-  //       return false;
-  //     }
-  
-  //     return this.deleteTwoChildren;
-  //   }
-  
-  //   deleteLeaf(parent, toDelete, value) {
-  //     return null;
-  //   }
-  
-  //   deleteOneChild(parent, toDelete, value) {
-  //     return toDelete.left || toDelete.right;
-  //   }
-  
-  //   deleteTwoChildren(parent, toDelete, value) {
-  //     const nextBiggest = this.findNextBiggest(
-  //       toDelete.right,
-  //       toDelete.data,
-  //       toDelete.right.data
-  //     );
-  
-  //     const tempData = nextBiggest.data;
-  
-  //     this.deleteSearch(nextBiggest.data);
-  
-  //     toDelete.data = tempData;
-  
-  //     return toDelete;
-  //   }
-  
-  //   findNextBiggest(node, min, max) {
-  //     let current = node;
-  //     if ((node.data > min) && (node.data) <= max) {
-  //       if (node.left === null) return current;
-  //       current = this.findNextBiggest(node.left,min,max);
-  //     }
-  //     return current;
-  //   }
-  
-  // }
-
 class Node {
   constructor(data, left = null, right = null) {
     this.data = data;
@@ -198,51 +95,71 @@ class Tree {
       if (current.right != null) queue.push(current.right);
     }
     if (result.length > 0) return result;
-    // try recursion implementation
+  }
+
+  levelOrderRec(callback, queue = [this.root], result = []) {
+    const current = queue.shift();
+    if (current == null) return;
+
+    if (!!callback) {
+      callback(current);
+    } else {
+      result.push(current.data);
+    }
+
+    if (current.left != null) queue.push(current.left);
+    if (current.right != null) queue.push(current.right);
+
+    this.levelOrderRec(callback, queue, result);
+
+    if (result.length > 0) return result;
   }
 
   traversal() {
     return this.inorder();
   }
 
-
-  ///// !!!! ADD CALLBACK OR RETURN ARRAY
-
-  preorder(callback, current = this.root) {
+  preorder(callback, current = this.root, out = []) {
     // root left right
     if (current == null) return;
-    console.log('in-depth',current,current.left,current.right);
-    this.preorder(null,current.left);
-    this.preorder(null,current.right);
+    if (!!callback) {
+      callback(current);
+    } else {
+      out.push(current.data);
+    }
+    this.preorder(callback,current.left,out);
+    this.preorder(callback,current.right,out);
+    if (out.length > 0) return out;
   }
 
-  inorder(callback, current = this.root) {
+  inorder(callback, current = this.root, out = []) {
     // left root right
-    const out = [];
     if (current == null) return;
 
-    const left = this.inorder(null,current.left);
+    this.inorder(callback, current.left, out);
 
     if (!!callback) {
       callback(current);
     } else {
-      console.log(current)
+      out.push(current.data);
     }
-    const right = this.inorder(null,current.right);
-
-    if (left !== undefined) out.push(...left);
-    out.push(current.data);
-    if (right !== undefined) out.push(...right);
     
-    return out;
+    this.inorder(callback, current.right, out);
+    
+    if (out.length > 0) return out;
   }
 
-  postorder(callback, current = this.root) {
+  postorder(callback, current = this.root, out = []) {
     // left right root
     if (current == null) return;
-    this.postorder(null,current.left);
-    this.postorder(null,current.right);
-    console.log('in-depth',current,current.left,current.right);
+    this.postorder(callback, current.left, out);
+    this.postorder(callback, current.right, out);
+    if (!!callback) {
+      callback(current);
+    } else {
+      out.push(current.data);
+    }
+    if (out.length > 0) return out;
   }
 
   height(node, height = 0) {
@@ -277,16 +194,22 @@ class Tree {
     return this.root;
   }
 
-
+  isBalanced(current = this.root) {
+    if (current == null) return true;
+    
+    const difference = Math.abs(
+      this.height(current.left) - this.height(current.right)
+    );
+    
+    return (
+      difference <= 1 &&
+      this.isBalanced(current.left) &&
+      this.isBalanced(current.right)
+    );
+  }
 
 
 }
-
-// 
-
-const testArray = [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324];
-const tree = new Tree(testArray);
-console.log(tree.root);
 
 
 const prettyPrint = (node, prefix = '', isLeft = true) => {
@@ -299,43 +222,47 @@ const prettyPrint = (node, prefix = '', isLeft = true) => {
   }
 }
 
+function printData(el) {
+  console.log(el.data);
+}
 
-tree.insertRec(2);
-tree.insertRec(4);
-tree.insertRec(6);
-tree.insertRec(0);
-tree.insertRec(10);
 
+// Create a binary search tree from an array of random numbers.
+const testArray = [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324];
+const tree = new Tree(testArray);
+
+// Confirm that the tree is balanced by calling isBalanced
+console.log('is balanced', tree.isBalanced());
+
+// Print out all elements in level, pre, post, and in order
+console.log('elements in level',tree.levelOrder(printData));
+console.log('preorder',tree.preorder(printData));
+console.log('inorder',tree.inorder(printData));
+console.log('postorder',tree.postorder(printData));
+
+prettyPrint(tree.root);
+
+// Unbalance the tree by adding several numbers > 100
 tree.insertRec(1000);
 tree.insertRec(900);
 tree.insertRec(6343);
-tree.insertRec(8);
-tree.insertRec(11);
 
+// Confirm that the tree is unbalanced by calling isBalanced
+console.log('is balanced', tree.isBalanced());
 
-tree.delete(67);
+prettyPrint(tree.root);
 
-console.log(tree.find(23));
-
-// const deleter = new Deleter(tree.root);
-// console.log('search',deleter.deleteSearch(6345));
-
-
-console.log('traversal',tree.levelOrder());
-console.log('traversal',tree.levelOrder(console.log));
-// console.log(tree.levelOrder());
-
-tree.postorder();
-// tree.preorder();
-
-
-
-const heightNode = tree.find(11);
-console.log(heightNode);
-console.log(tree.height(heightNode));
-console.log('DEPTH...',tree.depth(heightNode));
-
-prettyPrint(tree.root) 
-
+// Balance the tree by calling rebalance
 tree.rebalance();
-prettyPrint(tree.root) 
+
+// Confirm that the tree is balanced by calling isBalanced
+console.log('is balanced', tree.isBalanced());
+
+// Print out all elements in level, pre, post, and in order
+console.log('elements in level',tree.levelOrder(printData));
+console.log('preorder',tree.preorder(printData));
+console.log('inorder',tree.inorder(printData));
+console.log('postorder',tree.postorder(printData));
+
+prettyPrint(tree.root);
+
