@@ -244,7 +244,7 @@ class Horse {
 }
 
 
-class MovesTree {
+class PathFinder {
   constructor(start,end) {
     this.root = this.buildTree(start, start, end);
   }
@@ -312,7 +312,7 @@ const horse = new Horse();
 Horse.getPossibleMoves([0,7]);
 
 
-const movestree = new MovesTree(
+const movestree = new PathFinder(
   [3,3],
   [1,4], 
 )
